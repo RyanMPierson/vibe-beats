@@ -6,6 +6,9 @@ class VibeBeatGame {
         this.currentBPM = 120;
         this.beatInterval = null;
         this.userBeatInterval = null;
+        this.gameTimer = null;
+        this.timeLeft = 15;
+        this.gameDuration = 15; // 15 seconds
         this.lastBeatTime = 0;
         this.expectedBeatTime = 0;
         this.beatCount = 0;
@@ -27,8 +30,8 @@ class VibeBeatGame {
             beatCircle: document.getElementById('beatCircle'),
             beatPulse: document.getElementById('beatPulse'),
             startBtn: document.getElementById('startBtn'),
-            takeoverBtn: document.getElementById('takeoverBtn'),
             resetBtn: document.getElementById('resetBtn'),
+            timeLeft: document.getElementById('timeLeft'),
             accuracy: document.getElementById('accuracy'),
             streak: document.getElementById('streak'),
             score: document.getElementById('score'),
@@ -63,22 +66,29 @@ class VibeBeatGame {
     setupEventListeners() {
         // Button controls
         this.elements.startBtn.addEventListener('click', () => this.startTempo());
-        this.elements.takeoverBtn.addEventListener('click', () => this.takeControl());
         this.elements.resetBtn.addEventListener('click', () => this.reset());
         
         // Beat circle click
-        this.elements.beatCircle.addEventListener('click', () => this.userBeat());
+        this.elements.beatCircle.addEventListener('click', () => {
+            if (!this.isPlaying) {
+                this.startTempo();
+            } else if (!this.isUserControlling) {
+                this.takeControlNaturally();
+            } else {
+                this.userBeat();
+            }
+        });
         
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
-                if (this.isUserControlling) {
-                    this.userBeat();
-                } else if (this.isPlaying) {
-                    this.takeControl();
-                } else {
+                if (!this.isPlaying) {
                     this.startTempo();
+                } else if (!this.isUserControlling) {
+                    this.takeControlNaturally();
+                } else {
+                    this.userBeat();
                 }
             }
         });
@@ -114,7 +124,6 @@ class VibeBeatGame {
         
         this.elements.startBtn.textContent = 'PLAYING...';
         this.elements.startBtn.disabled = true;
-        this.elements.takeoverBtn.disabled = false;
         
         // Clear any existing intervals
         if (this.beatInterval) clearInterval(this.beatInterval);
@@ -133,14 +142,21 @@ class VibeBeatGame {
         this.updateVisualizer();
     }
     
-    takeControl() {
+    takeControlNaturally() {
+        // Calculate the next expected beat based on current tempo
+        const beatIntervalMs = (60 / this.currentBPM) * 1000;
+        const now = Date.now();
+        const timeSinceLastBeat = now - this.lastBeatTime;
+        const nextBeatTime = this.lastBeatTime + beatIntervalMs;
+        
         this.isUserControlling = true;
         this.userBeatTimes = [];
         this.beatCount = 0;
-        this.expectedBeatTime = Date.now() + (60 / this.currentBPM) * 1000;
+        this.expectedBeatTime = nextBeatTime;
+        this.timeLeft = this.gameDuration;
         
-        this.elements.takeoverBtn.textContent = 'USER CONTROL';
-        this.elements.takeoverBtn.disabled = true;
+        // Update UI
+        this.elements.startBtn.textContent = 'USER PLAYING';
         
         // Clear game beat interval
         if (this.beatInterval) {
@@ -148,13 +164,78 @@ class VibeBeatGame {
             this.beatInterval = null;
         }
         
-        // Fade out game audio
+        // Gradually fade out game audio over 2 beats
         if (this.gameGain) {
-            this.gameGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1);
+            const fadeTime = beatIntervalMs * 2 / 1000; // 2 beats in seconds
+            this.gameGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + fadeTime);
         }
+        
+        // Play the current beat as user beat to maintain flow
+        this.playUserBeat();
+        this.animateBeatCircle();
+        
+        // Record this as the first user beat
+        this.userBeatTimes.push(now);
         
         // Start expecting user beats
         this.startUserBeatDetection();
+        
+        // Start the game timer
+        this.startGameTimer();
+        
+        // Update expected time for next beat
+        this.expectedBeatTime = now + beatIntervalMs;
+    }
+    
+    startGameTimer() {
+        this.updateTimerDisplay();
+        this.gameTimer = setInterval(() => {
+            this.timeLeft--;
+            this.updateTimerDisplay();
+            
+            if (this.timeLeft <= 0) {
+                this.endGame();
+            }
+        }, 1000);
+    }
+    
+    updateTimerDisplay() {
+        this.elements.timeLeft.textContent = this.timeLeft > 0 ? `${this.timeLeft}s` : '0s';
+        
+        // Change color based on time remaining
+        if (this.timeLeft <= 5) {
+            this.elements.timeLeft.style.color = '#ff4444';
+        } else if (this.timeLeft <= 10) {
+            this.elements.timeLeft.style.color = '#ffff00';
+        } else {
+            this.elements.timeLeft.style.color = '#00ff00';
+        }
+    }
+    
+    endGame() {
+        // Stop all intervals
+        if (this.gameTimer) {
+            clearInterval(this.gameTimer);
+            this.gameTimer = null;
+        }
+        
+        if (this.userBeatInterval) {
+            clearInterval(this.userBeatInterval);
+            this.userBeatInterval = null;
+        }
+        
+        // Update game state
+        this.isPlaying = false;
+        this.isUserControlling = false;
+        
+        // Show final results
+        this.elements.startBtn.textContent = `GAME OVER! Score: ${this.score}`;
+        this.elements.startBtn.disabled = false;
+        
+        // Play end game sound
+        this.playBeep(200, 0.5, 0.4);
+        
+        console.log(`🎵 Game Over! Final Score: ${this.score}, Max Streak: ${this.maxStreak}, Accuracy: ${this.accuracy}%`);
     }
     
     startUserBeatDetection() {
@@ -174,7 +255,13 @@ class VibeBeatGame {
     }
     
     userBeat() {
-        if (!this.isUserControlling) return;
+        if (!this.isUserControlling) {
+            // If user tries to beat while game is playing, take control naturally
+            if (this.isPlaying) {
+                this.takeControlNaturally();
+            }
+            return;
+        }
         
         const now = Date.now();
         this.userBeatTimes.push(now);
@@ -219,6 +306,7 @@ class VibeBeatGame {
     }
     
     playGameBeat() {
+        this.lastBeatTime = Date.now(); // Track when this beat occurred
         this.playBeep(800, 0.1, 0.3); // Higher pitched beep for game
         this.animateBeatCircle();
         this.beatCount++;
@@ -271,6 +359,11 @@ class VibeBeatGame {
         this.elements.accuracy.textContent = `${this.accuracy}%`;
         this.elements.streak.textContent = this.streak;
         this.elements.score.textContent = this.score;
+        
+        if (!this.isUserControlling) {
+            this.elements.timeLeft.textContent = '--';
+            this.elements.timeLeft.style.color = '#8a2be2';
+        }
     }
     
     updateVisualizer() {
@@ -293,6 +386,7 @@ class VibeBeatGame {
         this.streak = 0;
         this.score = 0;
         this.maxStreak = 0;
+        this.timeLeft = this.gameDuration;
         
         // Clear intervals
         if (this.beatInterval) {
@@ -305,6 +399,11 @@ class VibeBeatGame {
             this.userBeatInterval = null;
         }
         
+        if (this.gameTimer) {
+            clearInterval(this.gameTimer);
+            this.gameTimer = null;
+        }
+        
         // Reset audio
         if (this.gameGain) {
             this.gameGain.gain.cancelScheduledValues(this.audioContext.currentTime);
@@ -314,8 +413,6 @@ class VibeBeatGame {
         // Reset UI
         this.elements.startBtn.textContent = 'START TEMPO';
         this.elements.startBtn.disabled = false;
-        this.elements.takeoverBtn.textContent = 'TAKE CONTROL';
-        this.elements.takeoverBtn.disabled = true;
         
         // Reset tempo indicator
         this.elements.tempoIndicator.style.background = 'rgba(255, 255, 255, 0.1)';
