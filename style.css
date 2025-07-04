@@ -1,0 +1,371 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Orbitron', monospace;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    color: #00ffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.title {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #8a2be2;
+    margin-top: 0.5rem;
+    letter-spacing: 2px;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.game-interface {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 2rem;
+    grid-template-areas:
+        "tempo beat-zone score"
+        "controls controls controls"
+        "instructions instructions instructions";
+}
+
+.tempo-display {
+    grid-area: tempo;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bpm-counter {
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid #00ffff;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.bpm-value {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #00ffff;
+}
+
+.bpm-label {
+    font-size: 0.9rem;
+    color: #8a2be2;
+    letter-spacing: 1px;
+}
+
+.tempo-indicator {
+    width: 100px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin-top: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.tempo-indicator::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    border-radius: 10px;
+    transition: width 0.1s ease;
+}
+
+.beat-zone {
+    grid-area: beat-zone;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.beat-circle {
+    width: 200px;
+    height: 200px;
+    border: 3px solid #00ffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+    transition: all 0.1s ease;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+}
+
+.beat-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+}
+
+.beat-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #ff00ff;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.beat-pulse.active {
+    animation: pulseAnimation 0.3s ease-out;
+}
+
+@keyframes pulseAnimation {
+    0% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+.beat-center {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    z-index: 2;
+}
+
+.controls {
+    grid-area: controls;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.control-btn {
+    padding: 1rem 2rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    background: transparent;
+    border: 2px solid;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.control-btn:hover::before {
+    left: 100%;
+}
+
+.start-btn {
+    border-color: #00ff00;
+    color: #00ff00;
+}
+
+.start-btn:hover {
+    background: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.takeover-btn {
+    border-color: #ffff00;
+    color: #ffff00;
+}
+
+.takeover-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+}
+
+.takeover-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.reset-btn {
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.reset-btn:hover {
+    background: rgba(255, 68, 68, 0.1);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+}
+
+.score-panel {
+    grid-area: score;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.score-item {
+    background: rgba(138, 43, 226, 0.1);
+    border: 2px solid #8a2be2;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
+
+.score-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #8a2be2;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.score-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff00ff;
+}
+
+.instructions {
+    grid-area: instructions;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.instructions p {
+    margin-bottom: 0.5rem;
+    color: #b0b0b0;
+    font-size: 0.9rem;
+}
+
+.audio-visualizer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 10px;
+    z-index: -1;
+}
+
+.vis-bar {
+    width: 6px;
+    height: 20px;
+    background: linear-gradient(to top, #00ffff, #ff00ff);
+    border-radius: 3px;
+    animation: visualize 1s ease-in-out infinite;
+    animation-delay: var(--delay);
+}
+
+@keyframes visualize {
+    0%, 100% {
+        height: 20px;
+        opacity: 0.3;
+    }
+    50% {
+        height: 60px;
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-interface {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "beat-zone"
+            "tempo"
+            "score"
+            "controls"
+            "instructions";
+    }
+    
+    .title {
+        font-size: 2.5rem;
+    }
+    
+    .beat-circle {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .control-btn {
+        width: 200px;
+    }
+}

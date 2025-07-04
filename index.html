@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Beats - Tempo Master</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="header">
+            <h1 class="title">VIBE BEATS</h1>
+            <p class="subtitle">Master the Tempo</p>
+        </header>
+        
+        <div class="game-interface">
+            <div class="tempo-display">
+                <div class="bpm-counter">
+                    <span class="bpm-value" id="bpmValue">120</span>
+                    <span class="bpm-label">BPM</span>
+                </div>
+                <div class="tempo-indicator" id="tempoIndicator"></div>
+            </div>
+            
+            <div class="beat-zone">
+                <div class="beat-circle" id="beatCircle">
+                    <div class="beat-pulse" id="beatPulse"></div>
+                    <div class="beat-center">BEAT</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn start-btn" id="startBtn">START TEMPO</button>
+                <button class="control-btn takeover-btn" id="takeoverBtn" disabled>TAKE CONTROL</button>
+                <button class="control-btn reset-btn" id="resetBtn">RESET</button>
+            </div>
+            
+            <div class="score-panel">
+                <div class="score-item">
+                    <span class="score-label">ACCURACY</span>
+                    <span class="score-value" id="accuracy">0%</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">STREAK</span>
+                    <span class="score-value" id="streak">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">SCORE</span>
+                    <span class="score-value" id="score">0</span>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <p>1. Click START TEMPO to hear the beat</p>
+                <p>2. When ready, click TAKE CONTROL</p>
+                <p>3. Continue the tempo using SPACEBAR or clicking the beat circle</p>
+                <p>4. Maintain perfect timing to increase your score!</p>
+            </div>
+        </div>
+        
+        <div class="audio-visualizer" id="visualizer">
+            <div class="vis-bar" style="--delay: 0s"></div>
+            <div class="vis-bar" style="--delay: 0.1s"></div>
+            <div class="vis-bar" style="--delay: 0.2s"></div>
+            <div class="vis-bar" style="--delay: 0.3s"></div>
+            <div class="vis-bar" style="--delay: 0.4s"></div>
+            <div class="vis-bar" style="--delay: 0.5s"></div>
+            <div class="vis-bar" style="--delay: 0.6s"></div>
+            <div class="vis-bar" style="--delay: 0.7s"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
